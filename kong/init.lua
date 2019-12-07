@@ -361,8 +361,10 @@ end
 
 local Kong = {}
 
-
+-- 发生在master进程启动阶段。这里会对数据访问层进行初始化，加载插件的代码，构造路由规则表。
 function Kong.init()
+
+  --初始化kong的共享空间
   reset_kong_shm()
 
   -- special math.randomseed from kong.globalpatches not taking any argument.
@@ -370,7 +372,9 @@ function Kong.init()
   -- duplicated seeds.
   math.randomseed()
 
+  -- 引用pl.path库
   local pl_path = require "pl.path"
+  -- 应用conf_loader文件
   local conf_loader = require "kong.conf_loader"
 
   -- check if kong global is the correct one
@@ -381,11 +385,13 @@ function Kong.init()
 
   -- retrieve kong_config
   local conf_path = pl_path.join(ngx.config.prefix(), ".kong_env")
+  -- 读取config，利用assert可以打印错误信息
   local config = assert(conf_loader(conf_path, nil, { from_kong_env = true }))
 
   -- Set up default ssl client context
   local default_client_ssl_ctx
 
+  -- service_mesh在config中的设置在下个版本删除
   if config.service_mesh then
     if set_ssl_ctx then
       default_client_ssl_ctx = http_tls.new_client_context()
