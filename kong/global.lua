@@ -107,7 +107,15 @@ do
     self.log = log_facilities.core
   end
 
-
+  ----------------------------------------------------------------
+  --- name:     init_pdk
+  --- function: 初始化pdk
+  --- param:    self                table       kong的配置文件
+  ---           kong_config         table       配置信息
+  ---           pdk_major_version   nil，string pdk版本
+  --- return:
+  ---
+  ----------------------------------------------------------------
   function _GLOBAL.init_pdk(self, kong_config, pdk_major_version)
     if not self then
       error("arg #1 cannot be nil", 2)

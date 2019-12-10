@@ -77,7 +77,7 @@ local function merge_tab(t1, t2)
   return res
 end
 
-
+-- 初始化table模块
 local function new(self)
   return {
     new = new_tab,

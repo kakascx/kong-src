@@ -410,7 +410,7 @@ function Kong.init()
                           "Dynamic client SSL_CTX* will be unavailable")
     end
   end
-
+  -- 初始化pdk
   kong_global.init_pdk(kong, config, nil) -- nil: latest PDK
 
   local db = assert(DB.new(config))

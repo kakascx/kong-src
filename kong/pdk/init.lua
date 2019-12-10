@@ -237,8 +237,17 @@ local _PDK = {
   major_versions = MAJOR_VERSIONS,
 }
 
-
+----------------------------------------------------------------
+--- name:     new
+--- function: 初始化pdk
+--- param:    self                table       kong的配置文件
+---           kong_config         table       配置信息
+---           pdk_major_version   nil，string pdk版本
+--- return:
+---
+----------------------------------------------------------------
 function _PDK.new(kong_config, major_version, self)
+  -- 判断是否存在config
   if kong_config then
     if type(kong_config) ~= "table" then
       error("kong_config must be a table", 2)
@@ -247,22 +256,23 @@ function _PDK.new(kong_config, major_version, self)
   else
     kong_config = {}
   end
-
+  -- 判断版本信息
   if major_version then
     if type(major_version) ~= "number" then
       error("major_version must be a number", 2)
     end
 
   else
+    --如果没传版本信息进来，major_verion=1
     major_version = MAJOR_VERSIONS.latest
   end
-
+  -- 给version赋值
   local version_meta = MAJOR_VERSIONS[major_version]
 
   self = self or {}
 
   self.pdk_major_version = major_version
-  self.pdk_version = version_meta.version
+  self.pdk_version = version_meta.version -- 1.3.0
 
   self.configuration = setmetatable({}, {
     __index = function(_, v)
@@ -273,9 +283,11 @@ function _PDK.new(kong_config, major_version, self)
       error("cannot write to configuration", 2)
     end,
   })
-
+  -- 遍历modules
   for _, module_name in ipairs(version_meta.modules) do
     local parent = self
+    -- gmatch返回一个迭代器，进行多次匹配
+    -- 此处匹配不含.的字符串后接着一个.也就是service.
     for part in module_name:gmatch("([^.]+)%.") do
       if not parent[part] then
         parent[part] = {}
@@ -284,13 +296,14 @@ function _PDK.new(kong_config, major_version, self)
       parent = parent[part]
     end
 
+    -- 匹配不含.的字符串，例如kong.ctx
     local child = module_name:match("[^.]*$")
     if parent[child] then
       error("PDK module '" .. module_name .. "' conflicts with a key")
     end
-
+    -- 引用kong.pdk文件夹下的lua文件
     local mod = require("kong.pdk." .. module_name)
-
+    -- 运行每一个模块的new
     parent[child] = mod.new(self)
   end
 
